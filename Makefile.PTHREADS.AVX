@@ -1,0 +1,93 @@
+CPP = g++
+CXXFLAGS = -D_USE_PTHREADS -DPHYLO_LIBRARY -D__AVX -D__SIM_SSE3 -c -O2 -mssse3 -mavx
+CC  = gcc
+CFLAGS       = -I$(PHYLOLIB_SRC_DIR) -DEXPERIMENTAL -march=native -mtune=native\
+			   -D_USE_PTHREADS -D__AVX -D_OPTIMIZED_FUNCTIONS -D__SIM_SSE3 -O2 -D_GNU_SOURCE \
+			   -mssse3 -mavx -fomit-frame-pointer -funroll-loops
+CLIBRARIES	 = -lm -pthread
+DPPDIV_SRC_DIR = src/
+PHYLOLIB_SRC_DIR = PLL/
+PHYPARSER_SRC_DIR = PLL/phylip_parser/
+OBJ_DIR = obj/
+CXXFILES = Alignment.cpp \
+		   Calibration.cpp \
+		   MbRandom.cpp \
+		   Mcmc.cpp \
+		   Model.cpp \
+		   Parameter_basefreq.cpp \
+		   Parameter_cphyperp.cpp \
+		   Parameter.cpp \
+		   Parameter_exchangeability.cpp \
+		   Parameter_expcalib.cpp \
+		   Parameter_rate.cpp \
+		   Parameter_shape.cpp \
+		   Parameter_speciaton.cpp \
+		   Parameter_tree.cpp \
+		   Parameter_treescale.cpp \
+		   dppdiv.cpp
+LIB_CFILES   = bipartitionList.c \
+			   evaluateGenericSpecial.c \
+			   evaluatePartialGenericSpecial.c \
+			   makenewzGenericSpecial.c \
+			   avxLikelihood.c \
+			   models.c \
+			   optimizeModel.c \
+			   restartHashTable.c \
+			   searchAlgo.c \
+			   topologies.c \
+			   trash.c \
+			   treeIO.c \
+			   newviewGenericSpecial.c \
+			   fastDNAparsimony.c \
+			   randomTree.c \
+			   recom.c \
+			   utils.c \
+			   genericParallelization.c 
+PARSER_CFILES = phylip.c \
+				lexer.c \
+				xalloc.c \
+				msa_sites.c \
+				ssort.c
+PHYLOLIB_OBJ = $(patsubst %.c, $(OBJ_DIR)%.o, $(LIB_CFILES))
+PHYPARSER_OBJ = $(patsubst %.c, $(OBJ_DIR)%.o, $(PARSER_CFILES))
+DPPDIV_OBJ   = $(patsubst %.cpp, $(OBJ_DIR)%.o, $(CXXFILES))
+
+all: phylolib phyparser dppdiv globals
+	$(CPP) $(OBJ_DIR)phylip.o $(PHYLOLIB_OBJ) \
+	$(OBJ_DIR)globals.o $(OBJ_DIR)lexer.o $(OBJ_DIR)msa_sites.o $(OBJ_DIR)xalloc.o $(OBJ_DIR)ssort.o \
+	$(DPPDIV_OBJ) -o dppdiv-pthreads-avx $(CLIBRARIES)
+
+clean:
+	-rm $(OBJ_DIR)*.o
+	-rm dppdiv-pthreads
+
+globals: $(OBJ_DIR)globals.o
+
+$(OBJ_DIR)globals.o: $(DPPDIV_SRC_DIR)globals.c
+	$(CC) -D_USE_PTHREADS -D_OPTIMIZED_FUNCTIONS -D__SIM_SSE3 -D__AVX -O2 -D_GNU_SOURCE -I$(PHYLOLIB_SRC_DIR) -c $+ -mssse3 -mavx -o $(OBJ_DIR)globals.o
+
+phylolib: $(PHYLOLIB_OBJ)
+	@echo "==> Finished compiling PHYLOLIB files"
+
+phyparser: $(PHYPARSER_OBJ)
+	@echo "==> Finished compiling PHYLIP PARSER files"
+	
+dppdiv: $(DPPDIV_OBJ)
+	@echo "==> Finished compiling DPPDiv files"
+
+$(OBJ_DIR)dppdiv.o: $(DPPDIV_SRC_DIR)dppdiv.cpp
+	$(CPP) -I$(PHYLOLIB_SRC_DIR) $(CXXFLAGS) $+ -I$(DPPDIV_SRC_DIR) -o $@ 
+
+$(OBJ_DIR)Alignment.o: $(DPPDIV_SRC_DIR)Alignment.cpp
+	$(CPP) $(CXXFLAGS) $+ -I$(DPPDIV_SRC_DIR) -I$(PHYLOLIB_SRC_DIR) -o $@
+	
+$(OBJ_DIR)%.o: $(DPPDIV_SRC_DIR)%.cpp
+	$(CPP) $(CXXFLAGS) $+ -I$(DPPDIV_SRC_DIR) -I$(PHYLOLIB_SRC_DIR) -o $@
+
+$(OBJ_DIR)%.o: $(PHYLOLIB_SRC_DIR)%.c
+	$(CC) $(CFLAGS) -c $+ -o $@
+
+$(OBJ_DIR)%.o: $(PHYPARSER_SRC_DIR)%.c
+	$(CC) $(CFLAGS) -c $+ -o $@ 
+
+.PHONY: globals phylolib dppdiv
