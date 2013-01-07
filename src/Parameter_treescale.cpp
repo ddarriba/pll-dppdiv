@@ -182,8 +182,6 @@ double Treescale::update(double &oldLnL) {
 	
 	modelPtr->setPllBranchLengths();
 	
-	cout << "End scale" << endl;
-
 	return lnPriorRatio + lnProposalRatio + jacobian;
 }
 

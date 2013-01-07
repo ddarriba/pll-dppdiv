@@ -41,11 +41,15 @@ Shape::Shape(MbRandom *rp, Model *mp, int nc, double lam, bool fx) :
 
 	numCats = nc;
 	lambda = lam;
-	alpha =
-			&pll_tree->partitionData[CURRENT_PARTITION].alpha;
-	*alpha = ranPtr->exponentialRv(lambda);
-	rates =
-			pll_tree->partitionData[CURRENT_PARTITION].gammaRates;
+	alpha = &pll_tree->partitionData[CURRENT_PARTITION].alpha;
+	double minA = ALPHA_MIN;
+	double maxA = 300.0;
+        double newAlpha;
+	do {
+		newAlpha = ranPtr->exponentialRv(lambda);
+	} while (newAlpha < minA | newAlpha > maxA);
+        *alpha = newAlpha;
+	rates =	pll_tree->partitionData[CURRENT_PARTITION].gammaRates;
 	makeGammaCats(*alpha, rates, numCats,
 			pll_tree->useMedian);
 	name = "SH";

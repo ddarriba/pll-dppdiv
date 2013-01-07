@@ -1697,6 +1697,5 @@ int Tree::checkTreeForCalibrationCompatibility() {
 			}
 		}
 	}
-	cout << numIncomp << endl;
 	return numIncomp;
 }
