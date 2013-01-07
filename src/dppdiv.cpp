@@ -57,9 +57,9 @@ void printHelp(bool files) {
 
 		cout << "*****\n";
 		cout << "\nFile formats: \n\n";
-		cout << "Tree file (newick format)\n";
+		cout << "Tree file (rooted tree in newick format with branch lengths)\n";
 		cout << "-----------------------------------------------\n";
-		cout << "(((T1,T2),T3),(T4,T5));\n\n";
+		cout << "(((T1:0.5,T2:0.5):0.5,T3):0.5,(T4:0.5,T5:0.5));\n\n";
 		cout << "-----------------------------------------------\n\n";
 		cout << "Data file (phylip format)\n";
 		cout << "-----------------------------------------------\n";
