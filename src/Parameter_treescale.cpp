@@ -148,7 +148,6 @@ double Treescale::update(double &oldLnL) {
 			newRH = (2 * lowBound) - newRH;
 		if(newRH > hiBound)
 			newRH = (2 * hiBound) - newRH;
-		exit(0);
 	}
 
 	double scaleRatio = oldRH / newRH;
