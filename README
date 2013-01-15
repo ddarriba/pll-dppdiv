@@ -1,0 +1,111 @@
+PLL-DPPDiv 1.0
+
+Compiling under Linux:
+
+standard, SSE3 or AVX version?
+
+In general you should try to compile the SSE3 version that makes use of capabilities 
+on relativiely recent processors (most Intel or AMD chips not older than 3-4 years).
+The SSE3 version will run about 40% faster than the non-SSE3 version.
+
+If you have a more recently bought processor (within the last 1-2 years), please also try to compile
+the AVX version which once again uses the capabilities of modern processors better and can be 10-30% faster 
+than the SSE3 version. AVX will work on the Intel i7 (sandy-bridge) series processors as well as on the very recently 
+released AMD Bulldozer systems. 
+
+Compiling should work out of the box with all reasonably recent versions of the GNU gcc and Intel icc compilers.
+If you want to use icc replace gcc by icc in the Makefiles.
+
+Please direct all your PLL-DPPDiv questions to our google group (and only after 
+having used the search function!): 
+https://groups.google.com/d/forum/dppdiv-users
+
+
+***** COMPILING *****
+
+Sequential version:
+
+type:
+"make -f Makefile.SSE3"
+"rm obj/*.o"
+or
+"make -f Makefile.AVX"
+"rm obj/*.o"
+
+Pthreads version:
+
+type: 
+"make -f Makefile.PTHREADS.SSE3"
+"rm obj/*.o"
+or
+"make -f Makefile.PTHREADS.AVX"
+"rm obj/*.o"
+
+Coarse-grain MPI version:
+
+type:
+"make -f Makefile.MPI.SSE3"
+"rm obj/*.o"
+or
+"make -f Makefile.MPI.AVX"                            
+"rm obj/*.o"
+
+
+***** RUNNING *****
+
+GENERAL:
+
+  Type:
+    "./<dppdiv-binary> -h" for help about the syntax.
+  Example:
+    dppdiv -in datafile.dat -out file -tre tree.phy -cal root.cal -sf 10
+
+PTHREADS:
+
+  Advice:
+    While using the pthreads version, select the number of threads (<= number of cores!) with -T argument.
+  Example:
+    dppdiv -in datafile.dat -out file -tre tree.phy -cal root.cal -sf 10 -T 2
+
+
+You can find example input files in "testdata" directory
+
+Here are the available options that you can change (default values are in []):
+	-h    : print this menu
+	-hf   : display example file formats
+	-in   : Input file name **
+	-out  : output file name prefix [out]
+	-tre  : tree file name **
+	-pm   : prior mean of number of rate categories [= 3.0]
+	-ra   : shape for gamma on rates [= 2.0]
+	-rb   : scale for gamma om rates [= 4.0]
+	-hsh  : shape for gamma hyper prior on alpha concentration parameter 
+		[= 2.0]
+	-hsc  : scale for gamma hyper prior on alpha concentration parameter 
+		[calculted from prior mean on categories]
+	-n    : Number of MCMC cycles [= 1000000]
+	-pf   : print frequency [= 100] 
+	-sf   : sample frequency [= 100] 
+	-s1   : seed 1 (use this if you only pass in one seed) 
+	-s2   : seed 2 
+	-ubl  : use input branch lengths 
+	-snm  : single node move is turned on 
+	-rdn  : random-order node moves 
+	-offm : turn off a given move (1,2,3,4,5,6) 
+	-rnp  : return 0.0 for lnl, run under prior 
+	-cal  : file name with internal node calibratons 
+	-vb   : print moves to .info.out file 
+	-npr  : 1=uniform, 2=yule, 3=cbd, 4=cbd fix with given vals
+	-bdr  : inital diversificaton rate (lambda - mu)
+	-bda  : inital relative death rate (mu / lambda)
+	-soft : turn on soft bounds on calibrated nodes
+	-clok : run under strict clock (and estimate substiution rate)
+	-urg  : run under uncorrelated gamma-distributed rates
+	-exhp : all calibrated nodes are offset exponential and this also 
+		turns on the hyperprior on the exp rates
+	-dphp : all cal nodes have a DPM hyperprior this also gets a value 
+		for the expecte # of calibration clusters
+	-ghp  : hyperprior on calibrations from a gamma
+	-T    : number of threads [= 1] (only for phtreads version!!)
+	** required
+

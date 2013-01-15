@@ -54,7 +54,7 @@ DPPDIV_OBJ   = $(patsubst %.cpp, $(OBJ_DIR)%.o, $(CXXFILES))
 all: phylolib phyparser dppdiv globals
 	$(CPP) -D_FINE_GRAIN_MPI -D__SIM_SSE3 $(OBJ_DIR)phylip.o $(PHYLOLIB_OBJ) \
 	$(OBJ_DIR)globals.o $(OBJ_DIR)lexer.o $(OBJ_DIR)msa_sites.o $(OBJ_DIR)xalloc.o $(OBJ_DIR)ssort.o \
-	$(DPPDIV_OBJ) -o dppdiv-mpi $(CLIBRARIES)
+	$(DPPDIV_OBJ) -o dppdiv-mpi-sse3 $(CLIBRARIES)
 
 clean:
 	-rm $(OBJ_DIR)*.o
