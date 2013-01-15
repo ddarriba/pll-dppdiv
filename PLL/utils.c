@@ -835,7 +835,6 @@ boolean setupTree (tree *tr, boolean doInit)
 
 
   p0 = (nodeptr)malloc((tips + 3 * inter) * sizeof(node));
-
   assert(p0);
 
   tr->nodeBaseAddress = p0;

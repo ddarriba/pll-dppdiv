@@ -1,4 +1,19 @@
 /* 
+ * PLL-DPPDiv 1.0 source code
+ * Copyright (c) 2012
+ * Diego Darriba (1,2) (ddarriba@udc.es)
+ * Andre J. Aberer (3) (Andre.Aberer@h-its.org)
+ * Tomas Flouri (3) (Tomas.Flouri@h-its.org)
+ * Fernando Izquierdo-Carrasco (3) (Fernando.Izquierdo@h-its.org)
+ * Tracy Heath (4) (tracy@berkeley.edu)
+ * Alexandros Stamatakis (3,5) (Alexandros.Stamatakis@h-its.org)
+ *
+ * (1) Electronics and Systems, University of A Coruña, Spain
+ * (2) Biochemistry, Genetics and Inmunology, University of Vigo, Spain
+ * (3) Heidelberg Institute for Theoretical Studies, Heidelberg, Germany
+ * (4) Integrative Biology, University of California, Berkeley, CA 94720-3140
+ * (5) Karlsruhe Institute of Technology. Institute for Theoretical Informatics, Karlsruhe, Germany.
+ *
  * DPPDiv version 1.0b source code (git: 9c0ac3d2258f89827cfe9ba2b5038f0f656b82c1)
  * Copyright 2009-2011
  * Tracy Heath(1,2,3) (NSF postdoctoral fellowship in biological informatics DBI-0805631)
