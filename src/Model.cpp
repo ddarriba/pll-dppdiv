@@ -436,8 +436,10 @@ void Model::setTraversalDescriptor(Node *p) {
         setPllBranchLengths(p->getLft(), getActiveNodeRate());
         if (p->getRht())
         setPllBranchLengths(p->getRht(), getActiveNodeRate());
-        newviewGeneric(getActivePllTree(), p->getPllNode(),false);
-        newviewGeneric(getActivePllTree(), p->getPllNode()->back,false);
+	if (!runUnderPrior) {
+	        newviewGeneric(getActivePllTree(), p->getPllNode(),false);
+        	newviewGeneric(getActivePllTree(), p->getPllNode()->back,false);
+	}
         getActivePllTree()->start = p->getPllNode();
 }
 
