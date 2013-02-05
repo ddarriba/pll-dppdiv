@@ -234,7 +234,15 @@ int main(int argc, char * argv[]) {
 				else if (!strcmp(curArg, "-hsh"))
 					hyperSh = atof(argv[i + 1]);
 				else if (!strcmp(curArg, "-hsc"))
+                                 {
+                                        if (i + 1 == argc) 
+                                         {
+                                           cerr << endl << "  -hsc requires an argument" << endl << endl;
+					   printHelp(false);
+					   return 0;
+                                         }
 					hyperSc = atof(argv[i + 1]);
+                                 }
 				else if (!strcmp(curArg, "-rnp"))
 					runPrior = true;
 				else if (!strcmp(curArg, "-cal"))
@@ -242,9 +250,25 @@ int main(int argc, char * argv[]) {
 				else if (!strcmp(curArg, "-npr"))
 					treeNodePrior = atoi(argv[i + 1]);
 				else if (!strcmp(curArg, "-bdr")) // (lambda - mu)
+                                 {
+                                        if (i + 1 == argc) 
+                                         {
+                                           cerr << endl << "  -bdr requires an argument" << endl << endl;
+					   printHelp(false);
+					   return 0;
+                                         }
 					netDiv = atof(argv[i + 1]);
+                                 }
 				else if (!strcmp(curArg, "-bda")) // (mu / lambda)
+                                 {
+                                        if (i + 1 == argc) 
+                                         {
+                                           cerr << endl << "  -bda requires an argument" << endl << endl;
+					   printHelp(false);
+					   return 0;
+                                         }
 					relDeath = atof(argv[i + 1]);
+                                 }
 				else if (!strcmp(curArg, "-fix")) // fix clock
 					fixclokrt = atof(argv[i + 1]);
 				else if (!strcmp(curArg, "-res"))
