@@ -17,7 +17,7 @@ int lex_table[SIZE_ASCII] = {
 /*  !"# */   SYMBOL_SPACE, SYMBOL_UNKNOWN, SYMBOL_UNKNOWN, SYMBOL_UNKNOWN,
 /* $%&' */ SYMBOL_UNKNOWN, SYMBOL_UNKNOWN, SYMBOL_UNKNOWN, SYMBOL_UNKNOWN,
 /* ()*+ */ SYMBOL_UNKNOWN, SYMBOL_UNKNOWN, SYMBOL_UNKNOWN, SYMBOL_UNKNOWN,
-/* ,-./ */ SYMBOL_UNKNOWN,    SYMBOL_CHAR, SYMBOL_UNKNOWN, SYMBOL_UNKNOWN,
+/* ,-./ */ SYMBOL_UNKNOWN,    SYMBOL_CHAR, SYMBOL_CHAR,    SYMBOL_UNKNOWN,
 /* 0123 */   SYMBOL_DIGIT,   SYMBOL_DIGIT,   SYMBOL_DIGIT,   SYMBOL_DIGIT,
 /* 4567 */   SYMBOL_DIGIT,   SYMBOL_DIGIT,   SYMBOL_DIGIT,   SYMBOL_DIGIT,
 /* 89:; */   SYMBOL_DIGIT,   SYMBOL_DIGIT, SYMBOL_UNKNOWN, SYMBOL_UNKNOWN,
@@ -82,10 +82,10 @@ get_next_symbol ()
   
 }
 
-struct lex_token
+struct ltoken_t
 get_token (int * input)
 {
-  struct lex_token  token;
+  struct ltoken_t   token;
   int               start_pos;
 
   token.lexeme = rawtext + pos - 1;
@@ -127,13 +127,10 @@ get_token (int * input)
        break;
 
      case SYMBOL_CHAR:
- //    if (debug == 1) printf ("HERE!!!!! %d \n", rawtext[pos - 1]);
        do
         {
           *input = get_next_symbol();
- //         if (debug == 1) printf ("TEST: %d\n", *input);
         } while (*input == SYMBOL_CHAR || *input == SYMBOL_DIGIT);
-  //      if (debug == 1) printf ("pos startpod %d %d\n", pos, start_pos);
        token.len   = pos - start_pos;
        token.class = LEX_STRING;
        if (*input == SYMBOL_LFCR) --token.len;
@@ -165,5 +162,5 @@ init_lexan (const char * text, int n)
 {
   rawtext      = text;
   rawtext_size = n;
-  pos = 0;
+  pos          = 0;
 }

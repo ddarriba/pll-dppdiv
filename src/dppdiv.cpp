@@ -55,13 +55,13 @@
 #define AXML_H
 #include "axml.h"
 #endif
-#include "phylip_parser/phylip.h"
+#include "parser/phylip.h"
 using namespace std;
 
 #ifdef __cplusplus
 extern "C" {
 void read_msa(tree * tr, char * filename);
-void read_phylip_msa (tree * tr, const char * filename, int format, int type);
+void read_phylip_msa (tree * tr, const char * filename, int type);
 }
 #endif
 
@@ -372,7 +372,7 @@ int main(int argc, char * argv[]) {
 #endif
 
 	//read_msa(tr[0], (char *) dataFileName.c_str());
-    read_phylip_msa (tr[0], (char *) dataFileName.c_str(), PHYLIP_SEQUENTIAL, 0);
+    read_phylip_msa (tr[0], (char *) dataFileName.c_str(), 0);
     FILE *treeFile = myfopen(treeFileName.c_str(), "rb");
 	treeReadLen(treeFile, tr[0], TRUE, FALSE, TRUE);
 	fclose(treeFile);
@@ -381,7 +381,7 @@ tr[0]->partitionData[0].alpha = ALPHA_MIN;
   tr[1]->threadID = 0;
 #endif
 	//read_msa(tr[1], (char *) dataFileName.c_str());
-    read_phylip_msa (tr[1], (char *) dataFileName.c_str(), PHYLIP_SEQUENTIAL, 0);
+    read_phylip_msa (tr[1], (char *) dataFileName.c_str(), 0);
 	treeFile = myfopen(treeFileName.c_str(), "rb");
 	treeReadLen(treeFile, tr[1], TRUE, FALSE, TRUE);
 	fclose(treeFile);

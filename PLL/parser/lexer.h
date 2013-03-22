@@ -21,7 +21,7 @@
 #define  LEX_NEWLINE             0x00000010
 #define  LEX_UNKNOWN             0x00000020
 
-struct lex_token
+struct ltoken_t
  {
    int          class;
    const char * lexeme;
@@ -30,7 +30,7 @@ struct lex_token
 
 int get_next_byte (void);
 int get_next_symbol (void);
-struct lex_token get_token (int * input);
+struct ltoken_t get_token (int * input);
 void init_lexan (const char * text, int n);
 
 #endif

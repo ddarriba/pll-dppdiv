@@ -3,7 +3,7 @@ CXXFLAGS = -DPHYLO_LIBRARY -c -O2 -D__AVX -mavx -mssse3
 CC  = gcc
 DPPDIV_SRC_DIR = src/
 PHYLOLIB_SRC_DIR = PLL/
-PHYPARSER_SRC_DIR = PLL/phylip_parser/
+PHYPARSER_SRC_DIR = PLL/parser/
 OBJ_DIR = obj/
 CXXFILES = Alignment.cpp \
 		   Calibration.cpp \
@@ -40,8 +40,6 @@ LIB_CFILES   = bipartitionList.c \
 			   utils.c
 PARSER_CFILES = phylip.c \
 				lexer.c \
-				xalloc.c \
-				msa_sites.c \
 				ssort.c
 PHYLOLIB_OBJ = $(patsubst %.c, $(OBJ_DIR)%.o, $(LIB_CFILES))
 PHYPARSER_OBJ = $(patsubst %.c, $(OBJ_DIR)%.o, $(PARSER_CFILES))
@@ -53,7 +51,7 @@ CFLAGS       = -I$(PHYLOLIB_SRC_DIR) \
 			   -c -O2 -fomit-frame-pointer -funroll-loops -mssse3 -mavx
 
 all: phylolib phyparser dppdiv globals
-	$(CPP) -D__AVX $(OBJ_DIR)phylip.o $(DPPDIV_OBJ) $(PHYLOLIB_OBJ) $(OBJ_DIR)globals.o -o dppdiv-avx $(OBJ_DIR)lexer.o $(OBJ_DIR)msa_sites.o $(OBJ_DIR)xalloc.o $(OBJ_DIR)ssort.o
+	$(CPP) -D__AVX $(OBJ_DIR)phylip.o $(DPPDIV_OBJ) $(PHYLOLIB_OBJ) $(OBJ_DIR)globals.o -o dppdiv-avx $(OBJ_DIR)lexer.o $(OBJ_DIR)ssort.o
 
 clean:
 	-rm $(OBJ_DIR)*.o

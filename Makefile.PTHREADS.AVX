@@ -7,7 +7,7 @@ CFLAGS       = -I$(PHYLOLIB_SRC_DIR) -DEXPERIMENTAL -march=native -mtune=native\
 CLIBRARIES	 = -lm -pthread
 DPPDIV_SRC_DIR = src/
 PHYLOLIB_SRC_DIR = PLL/
-PHYPARSER_SRC_DIR = PLL/phylip_parser/
+PHYPARSER_SRC_DIR = PLL/parser/
 OBJ_DIR = obj/
 CXXFILES = Alignment.cpp \
 		   Calibration.cpp \
@@ -45,8 +45,6 @@ LIB_CFILES   = bipartitionList.c \
 			   genericParallelization.c 
 PARSER_CFILES = phylip.c \
 				lexer.c \
-				xalloc.c \
-				msa_sites.c \
 				ssort.c
 PHYLOLIB_OBJ = $(patsubst %.c, $(OBJ_DIR)%.o, $(LIB_CFILES))
 PHYPARSER_OBJ = $(patsubst %.c, $(OBJ_DIR)%.o, $(PARSER_CFILES))
@@ -54,7 +52,7 @@ DPPDIV_OBJ   = $(patsubst %.cpp, $(OBJ_DIR)%.o, $(CXXFILES))
 
 all: phylolib phyparser dppdiv globals
 	$(CPP) $(OBJ_DIR)phylip.o $(PHYLOLIB_OBJ) \
-	$(OBJ_DIR)globals.o $(OBJ_DIR)lexer.o $(OBJ_DIR)msa_sites.o $(OBJ_DIR)xalloc.o $(OBJ_DIR)ssort.o \
+	$(OBJ_DIR)globals.o $(OBJ_DIR)lexer.o $(OBJ_DIR)ssort.o \
 	$(DPPDIV_OBJ) -o dppdiv-pthreads-avx $(CLIBRARIES)
 
 clean:

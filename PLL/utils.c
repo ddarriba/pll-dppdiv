@@ -63,10 +63,12 @@
 #endif
 
 #include "axml.h"
-#include "phylip_parser/lexer.h"
-#include "phylip_parser/phylip.h"
-#include "phylip_parser/xalloc.h"
-#include "phylip_parser/msa_sites.h"
+//#include "phylip_parser/lexer.h"
+//#include "phylip_parser/phylip.h"
+//#include "phylip_parser/xalloc.h"
+//#include "phylip_parser/msa_sites.h"
+#include "parser/phylip.h"
+
 
 
 #include "globalVariables.h"
@@ -93,51 +95,37 @@ void storeValuesInTraversalDescriptor(tree *tr, double *value)
 }
 
 #ifdef EXPERIMENTAL
-void read_phylip_msa(tree * tr, const char * filename, int format, int type)
+void read_phylip_msa(tree * tr, const char * filename, int type)
 {
     size_t
       i, j,
       model;
 
-  struct phylip_data * pd;
-  struct msa_sites * ms;
+  struct pllPhylip * phylip;
   double **empiricalFrequencies;
 
-  pd = pl_phylip_parse (filename, format);
+  phylip = pllPhylipParse (filename);
+  pllPhylipRemoveDuplicate (phylip);
 
-  ms = construct_msa_sites (pd, SITES_CREATE | SITES_COMPUTE_WEIGHTS);
-
-  free_phylip_struct (pd);
-  pd = transpose (ms);
-  free_sites_struct (ms);
-
-
-
-  tr->mxtips                 = pd->taxa;
-  tr->originalCrunchedLength = pd->seqlen;
+  tr->mxtips                 = phylip->nTaxa;
+  tr->originalCrunchedLength = phylip->seqLen;
   tr->NumberOfModels         = 1;
   tr->numBranches            = 1;
 
   setupTree(tr, TRUE);
 
   tr->gapyness               = 0.03;   /* number of undetermined chars / alignment size */
+  tr->aliaswgt               = phylip->weights;
+  tr->originalCrunchedLength = phylip->seqLen;
 
-  tr->aliaswgt = pl_phylip_deldups (&pd);
-  tr->originalCrunchedLength = pd->seqlen;
+  pllPhylipSubst (phylip, PHYLIP_DNA_DATA);
 
-  pl_phylip_subst (pd, DNA_DATA);
+  tr->rateCategory  =     (int *) malloc ((size_t)tr->originalCrunchedLength * sizeof (int));
+  tr->patrat        =  (double *) malloc ((size_t)tr->originalCrunchedLength * sizeof (double));
+  tr->patratStored  =  (double *) malloc ((size_t)tr->originalCrunchedLength * sizeof (double));
+  tr->lhs           =  (double *) malloc ((size_t)tr->originalCrunchedLength * sizeof (double));
+  tr->executeModel  = (boolean *) malloc (sizeof (boolean) * (size_t)tr->NumberOfModels);
 
-  tr->rateCategory           =  (int *)    malloc((size_t)tr->originalCrunchedLength * sizeof(int));
-
-  tr->patrat                 =  (double *) malloc ((size_t)tr->originalCrunchedLength * sizeof (double));
-  tr->patratStored           =  (double *) malloc ((size_t)tr->originalCrunchedLength * sizeof (double));
-  tr->lhs                    =  (double *) malloc ((size_t)tr->originalCrunchedLength * sizeof (double));
-
-  tr->executeModel   = (boolean *)malloc(sizeof(boolean) * (size_t)tr->NumberOfModels);
-
-
-
-        
   for(i = 0; i < (size_t)tr->NumberOfModels; i++)
     tr->executeModel[i] = TRUE;
 
@@ -151,7 +139,7 @@ void read_phylip_msa(tree * tr, const char * filename, int format, int type)
   /* read tip names */
   for(i = 1; i <= (size_t)tr->mxtips; i++)
   {
-    tr->nameList[i] = pd->label[i - 1];
+    tr->nameList[i] = phylip->label[i];
   }
 
   for(i = 1; i <= (size_t)tr->mxtips; i++)
@@ -159,7 +147,7 @@ void read_phylip_msa(tree * tr, const char * filename, int format, int type)
 
   /* read partition info (boudaries, data type) */
   empiricalFrequencies = (double **)malloc(sizeof(double *) * (size_t)tr->NumberOfModels);
-  for(model = 0; model < (size_t)tr->NumberOfModels; model++)
+  for (model = 0; model < (size_t)tr->NumberOfModels; model++)
   {
     int
       len;
@@ -170,14 +158,14 @@ void read_phylip_msa(tree * tr, const char * filename, int format, int type)
     p->states             =  4;   /* according to the type */
     p->maxTipStates       = 16;   /* according to the type */
     p->lower              =  0;
-    p->upper              = pd->seqlen;
+    p->upper              = phylip->seqLen;
     p->width              = p->upper - p->lower;
     p->dataType           =   DNA_DATA; /* dna type */
-    p->protModels         =   2;
-    p->autoProtModels     =   0;
-    p->protFreqs          =   0;
-    p->nonGTR             =   FALSE;
-    p->numberOfCategories =   0;
+    p->protModels         =  2;
+    p->autoProtModels     =  0;
+    p->protFreqs          =  0;
+    p->nonGTR             =  FALSE;
+    p->numberOfCategories =  0;
     
     /* later on if adding secondary structure data
 
@@ -197,8 +185,10 @@ void read_phylip_msa(tree * tr, const char * filename, int format, int type)
 //  y = (unsigned char *)malloc(sizeof(unsigned char) * ((size_t)tr->originalCrunchedLength) * ((size_t)tr->mxtips));
 
   tr->yVector = (char **) malloc(sizeof(char*) * (tr->mxtips+1));
- for (i=0; i < tr->mxtips; ++i)
-        tr->yVector[i+1] = pd->seq[i]; //(unsigned char **)malloc(sizeof(unsigned char *) * ((size_t)(tr->mxtips + 1)));
+  for (i=0; i < tr->mxtips; ++i)
+    tr->yVector[i+1] = phylip->seq[i+1]; //(unsigned char **)malloc(sizeof(unsigned char *) * ((size_t)(tr->mxtips + 1)));
+
+  free (phylip);
 
 
 #ifndef _USE_PTHREADS
