@@ -155,6 +155,10 @@ void printHelp(bool files) {
 
 int main(int argc, char * argv[]) {
 
+#ifdef _FINE_GRAIN_MPI
+  initMPI(argc, argv);
+#endif
+
 	seedType s1 = 0;
 	seedType s2 = 0;
 	string dataFileName = "";
@@ -358,7 +362,6 @@ int main(int argc, char * argv[]) {
 #ifdef MEASURE_TIME_PARALLEL
   masterTimePerPhase = gettime();
 #endif
-  initMPI(argc, argv);
   if(workerTrap(tr[0]))
     return 0;
 #endif
@@ -419,41 +422,41 @@ cout << "Starting threads" << endl;
   masterBarrier(THREAD_INIT_PARTITION, tr[1]);
 #endif
 
-	Alignment myAlignment(tr[0]);
-	if (printalign)
-		myAlignment.print(std::cout);
+  Alignment myAlignment(tr[0]);
+  if (printalign)
+	myAlignment.print(std::cout);
 
-	string treeStr = getLineFromFile(treeFileName, 1);
+  string treeStr = getLineFromFile(treeFileName, 1);
 
-	MbRandom myRandom;
-	myRandom.setSeed(s1, s2);
+  MbRandom myRandom;
+  myRandom.setSeed(s1, s2);
 
-	Model myModel(&myRandom, &myAlignment, treeStr, priorMean, rateSh, rateSc,
+  Model myModel(&myRandom, &myAlignment, treeStr, priorMean, rateSh, rateSc,
 			hyperSh, hyperSc, userBLs, moveAllN, offmove, rndNdMv, calibFN,
 			treeNodePrior, netDiv, relDeath, fixclokrt, rootfix, softbnd,
 			calibHyP, dpmExpHyp, dpmEHPPrM, gammaExpHP, modelType, fixModelPs, tr);
-	if (runPrior)
-		myModel.setRunUnderPrior(true);
+  if (runPrior)
+	myModel.setRunUnderPrior(true);
 
-	double midTime = gettime();
+  double midTime = gettime();
 
-	Mcmc mcmc(&myRandom, &myModel, numCycles, printFreq, sampleFreq, outName,
-			writeDataFile, modUpdatePs);
+  Mcmc mcmc(&myRandom, &myModel, numCycles, printFreq, sampleFreq, outName,
+		writeDataFile, modUpdatePs);
 
-	free(tr[0]);
-	free(tr[1]);
+  free(tr[0]);
+  free(tr[1]);
 	
-#if (defined(_FINE_GRAIN_MPI) || defined(_USE_PTHREADS))
-  /* workers escape from their while loop (could be joined in pthread case )  */
-  masterBarrier(THREAD_EXIT_GRACEFULLY,tr[0]);
-#endif
-
   double endTime = gettime();
 
   printf("Total time: %f\n", endTime - initTime);
   printf("Init time:  %f\n", midTime - initTime);
   printf("MCMC time:  %f\n", endTime - midTime);
 
-	return 0;
+#if (defined(_FINE_GRAIN_MPI) || defined(_USE_PTHREADS))
+  /* workers escape from their while loop (could be joined in pthread case )  */
+  masterBarrier(THREAD_EXIT_GRACEFULLY,tr[0]);
+#endif
+
+  return 0;
 }
 

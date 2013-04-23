@@ -1132,8 +1132,10 @@ double sum;
 #endif
 #ifdef _FINE_GRAIN_MPI
 		MPI_Finalize();
-#endif
+		exit(0);
+#else
 		return FALSE;
+#endif
 	}
 		break;
 	default:
