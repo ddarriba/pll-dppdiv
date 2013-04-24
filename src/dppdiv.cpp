@@ -443,8 +443,6 @@ cout << "Starting threads" << endl;
   Mcmc mcmc(&myRandom, &myModel, numCycles, printFreq, sampleFreq, outName,
 		writeDataFile, modUpdatePs);
 
-  free(tr[0]);
-  free(tr[1]);
 	
   double endTime = gettime();
 
@@ -456,6 +454,9 @@ cout << "Starting threads" << endl;
   /* workers escape from their while loop (could be joined in pthread case )  */
   masterBarrier(THREAD_EXIT_GRACEFULLY,tr[0]);
 #endif
+
+  free(tr[0]);
+  free(tr[1]);
 
   return 0;
 }
