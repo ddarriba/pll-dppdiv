@@ -32,9 +32,12 @@
 #include <fstream>
 #include <cstdlib>
 #include <vector>
+#include <math.h>
 
 /* PLL partition. Since we are working with a single partition, it must be zero */
 #define CURRENT_PARTITION 0
+
+enum DataType { NUCLEIC, PROTEIC };
 
 inline std::string getLineFromFile(std::string fileName, int lineNum) {
 

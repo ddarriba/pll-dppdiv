@@ -53,7 +53,6 @@
 #include "Parameter_cphyperp.h"
 #include "Parameter_treescale.h"
 #include "Calibration.h"
-#include "util.h"
 #include <string>
 #include <vector>
 #include <fstream>
@@ -64,8 +63,11 @@ Model::Model(MbRandom *rp, Alignment *ap, string ts, double pm, double ra,
 		double rb, double hal, double hbe, bool ubl, bool alnm, int offmv,
 		bool rndNo, string clfn, int nodpr, double bdr, double bda,
 		double fxclkrt, bool roofix, bool sfb, bool ehpc, bool dphpc,
-		int dphpng, bool gamhp, int rmod, bool fxmod, tree *tr[2]) {
+		int dphpng, bool gamhp, int rmod, bool fxmod, tree *tr[2], DataType dt,
+		int pmodel) {
 
+	dataType = dt;
+	proteinModel = pmodel;
 	ranPtr = rp;
 	alignmentPtr = ap;
 	priorMeanN = pm;
@@ -124,9 +126,9 @@ Model::Model(MbRandom *rp, Alignment *ap, string ts, double pm, double ra,
 	int nn = 2 * alignmentPtr->getNumTaxa() - 1;
 
 	if (pm > nn - 1) {
-		cerr
-				<< "ERROR: the prior on the mean number of tables (" << pm << ") cannot exceed the number of nodes in the tree (" << nn << ")!"
-				<< endl;
+		cerr << "ERROR: the prior on the mean number of tables (" << pm
+				<< ") cannot exceed the number of nodes in the tree (" << nn
+				<< ")!" << endl;
 		exit(1);
 	}
 
@@ -136,7 +138,7 @@ Model::Model(MbRandom *rp, Alignment *ap, string ts, double pm, double ra,
 	NodeRate *nr = new NodeRate(ranPtr, this, nn, ra, rb, conp->getCurrentCP(),
 			fxclkrt, rmod);
 	for (int i = 0; i < 2; i++) {
-		parms[i].push_back(new Basefreq(ranPtr, this, 4, fxmod)); // base frequency parameter
+		parms[i].push_back(new Basefreq(ranPtr, this, 4, fxmod, dataType, proteinModel)); // base frequency parameter
 		parms[i].push_back(new Exchangeability(ranPtr, this)); // rate parameters of the GTR model
 		parms[i].push_back(new Shape(ranPtr, this, numGammaCats, 2.0, fxmod)); // gamma shape parameter for rate variation across sites
 		parms[i].push_back(
@@ -188,7 +190,8 @@ void Model::switchActiveParm(void) {
 }
 
 void Model::switchActiveParm(int newActiveParm) {
-	if (newActiveParm != activeParm) switchActiveParm();
+	if (newActiveParm != activeParm)
+		switchActiveParm();
 }
 
 Basefreq* Model::getActiveBasefreq(void) {
@@ -347,7 +350,8 @@ double Model::lnLikelihood(bool fullTraversal) {
 	if (runUnderPrior) {
 		myCurLnL = 0.0;
 	} else {
-		if (fullTraversal) getActivePllTree()->start = getActivePllTree()->nodep[1];
+		if (fullTraversal)
+			getActivePllTree()->start = getActivePllTree()->nodep[1];
 		evaluateGeneric(getActivePllTree(), getActivePllTree()->start,
 				fullTraversal);
 		myCurLnL = getActivePllTree()->likelihood;
@@ -384,7 +388,7 @@ double Model::safeExponentiation(double lnX) {
 void Model::rearrangeModelParameters(void) {
 	initReversibleGTR(getActivePllTree(), CURRENT_PARTITION);
 #if (defined(_FINE_GRAIN_MPI) || defined(_USE_PTHREADS))
-  masterBarrier(THREAD_COPY_INIT_MODEL, getActivePllTree());
+	masterBarrier(THREAD_COPY_INIT_MODEL, getActivePllTree());
 #endif
 	setPllBranchLengths();
 }
@@ -431,28 +435,28 @@ void Model::setPllBranchLengths(Node *p, NodeRate *r) {
 }
 
 void Model::setTraversalDescriptor(Node *p) {
-        setPllBranchLengths(p, getActiveNodeRate());
-        if (p->getLft())
-        setPllBranchLengths(p->getLft(), getActiveNodeRate());
-        if (p->getRht())
-        setPllBranchLengths(p->getRht(), getActiveNodeRate());
+	setPllBranchLengths(p, getActiveNodeRate());
+	if (p->getLft())
+		setPllBranchLengths(p->getLft(), getActiveNodeRate());
+	if (p->getRht())
+		setPllBranchLengths(p->getRht(), getActiveNodeRate());
 	if (!runUnderPrior) {
-	        newviewGeneric(getActivePllTree(), p->getPllNode(),false);
-        	newviewGeneric(getActivePllTree(), p->getPllNode()->back,false);
+		newviewGeneric(getActivePllTree(), p->getPllNode(), false);
+		newviewGeneric(getActivePllTree(), p->getPllNode()->back, false);
 	}
-        getActivePllTree()->start = p->getPllNode();
+	getActivePllTree()->start = p->getPllNode();
 }
 
 void Model::setSubtreePointers(Node *p) {
 	if (!p->getIsLeaf()) {
-			p->getPllNode()->x = 1;
-			p->getPllNode()->next->x = 0;
-			p->getPllNode()->next->next->x = 0;
-			if (p->getLft()->getNodeDepth() <= p->getRht()->getNodeDepth()) {
-				setSubtreePointers(p->getLft());
-			} else {
-				setSubtreePointers(p->getRht());
-			}
+		p->getPllNode()->x = 1;
+		p->getPllNode()->next->x = 0;
+		p->getPllNode()->next->next->x = 0;
+		if (p->getLft()->getNodeDepth() <= p->getRht()->getNodeDepth()) {
+			setSubtreePointers(p->getLft());
+		} else {
+			setSubtreePointers(p->getRht());
+		}
 	} else {
 		getActivePllTree()->start = p->getPllNode();
 	}
@@ -677,8 +681,13 @@ void Model::setUpdateProbabilities(bool initial) {
 		shp = 0.0;
 	}
 	updateProb.clear();
-	updateProb.push_back(bfp); // 1 basefreq
-	updateProb.push_back(srp); // 2 sub rates
+	if (dataType == PROTEIC) {
+		updateProb.push_back(0); // 1 basefreq
+		updateProb.push_back(0); // 2 sub rates
+	} else {
+		updateProb.push_back(bfp); // 1 basefreq
+		updateProb.push_back(srp); // 2 sub rates
+	}
 	updateProb.push_back(shp); // 3 gamma shape
 	updateProb.push_back(ntp); // 4 node times
 	updateProb.push_back(dpp); // 5 dpp rates

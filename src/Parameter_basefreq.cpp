@@ -51,8 +51,10 @@
 
 using namespace std;
 
-Basefreq::Basefreq(MbRandom *rp, Model *mp, int ns, bool fx) : Parameter(rp, mp, mp->getActivePllTree()) {
+Basefreq::Basefreq(MbRandom *rp, Model *mp, int ns, bool fx, DataType dt, int pmodel) : Parameter(rp, mp, mp->getActivePllTree()) {
 
+	dataType = dt;
+	proteinModel = pmodel;
 	numStates = ns;
 	freqs = pll_tree->partitionData[CURRENT_PARTITION].frequencies;
 	alpha = MbVector<double>(numStates);
@@ -63,7 +65,7 @@ Basefreq::Basefreq(MbRandom *rp, Model *mp, int ns, bool fx) : Parameter(rp, mp,
 	name = "BF";
 	if(fx){
 		for (int i=0; i<numStates; i++)
-			freqs[i] = 0.25;
+			freqs[i] = 1.0/numStates;
 	}
 }
 

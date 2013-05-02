@@ -55,13 +55,14 @@
 #define AXML_H
 #include "axml.h"
 #endif
+#include "globalVariables.h"
 #include "parser/phylip.h"
 using namespace std;
 
 #ifdef __cplusplus
 extern "C" {
 void read_msa(tree * tr, char * filename);
-void read_phylip_msa (tree * tr, const char * filename, int type);
+void read_phylip_msa(tree * tr, const char * filename, int type);
 }
 #endif
 
@@ -72,7 +73,8 @@ void printHelp(bool files) {
 
 		cout << "*****\n";
 		cout << "\nFile formats: \n\n";
-		cout << "Tree file (rooted tree in newick format with branch lengths)\n";
+		cout
+				<< "Tree file (rooted tree in newick format with branch lengths)\n";
 		cout << "-----------------------------------------------\n";
 		cout << "(((T1:0.5,T2:0.5):0.5,T3):0.5,(T4:0.5,T5:0.5));\n\n";
 		cout << "-----------------------------------------------\n\n";
@@ -97,11 +99,11 @@ void printHelp(bool files) {
 	} else {
 #ifdef _USE_PTHREADS
 		cout
-				<< "\n\texample:      \n\n\t$ dppdiv -T 2 -in datafile.dat -out file -tre tree.phy -n 10000 -sf 10\n\n";
+		<< "\n\texample:      \n\n\t$ dppdiv -T 2 -in datafile.dat -out file -tre tree.phy -n 10000 -sf 10\n\n";
 #else
 #ifdef _FINE_GRAIN_MPI
 		cout
-				<< "\n\texample:      \n\n\t$ mpirun -np 2 dppdiv -in datafile.dat -out file -tre tree.phy -n 10000 -sf 10\n\n";
+		<< "\n\texample:      \n\n\t$ mpirun -np 2 dppdiv -in datafile.dat -out file -tre tree.phy -n 10000 -sf 10\n\n";
 #else
 		cout
 				<< "\n\texample:      \n\n\t$ dppdiv -in datafile.dat -out file -tre tree.phy -n 10000 -sf 10\n\n";
@@ -115,6 +117,17 @@ void printHelp(bool files) {
 		cout << "\t\t-out  : output file name prefix [out]\n";
 		cout << "\t\t-tre  : tree file name **\n";
 		cout << "\t\t-pm   : prior mean of number of rate categories [= 3.0]\n";
+		cout << "\t\t-m    : aminoacid replacement model (for protein data)\n";
+		cout << "\t\t        ";
+		/** Printing all the protein models but AUTO and GTR **/
+		for (int i = 0; i < 10; i++) {
+			cout << protModels[i] << " ";
+		}
+		cout << "\n\t\t        ";
+		for (int i = 10; i < (NUM_PROT_MODELS - 2); i++) {
+			cout << protModels[i] << " ";
+		}
+		cout << "\n";
 		cout << "\t\t-ra   : shape for gamma on rates [= 2.0]\n";
 		cout << "\t\t-rb   : scale for gamma om rates [= 4.0]\n";
 		cout
@@ -156,7 +169,7 @@ void printHelp(bool files) {
 int main(int argc, char * argv[]) {
 
 #ifdef _FINE_GRAIN_MPI
-  initMPI(argc, argv);
+	initMPI(argc, argv);
 #endif
 
 	seedType s1 = 0;
@@ -192,6 +205,8 @@ int main(int argc, char * argv[]) {
 	bool gammaExpHP = false;
 	bool modUpdatePs = false;
 	bool fixModelPs = false;
+	DataType dataType = NUCLEIC;
+	int proteicModel = -1;
 	int dpmEHPPrM = 3;
 	int modelType = 1; // 1 = DPP, 2 = strict clock, 3 = uncorrelated-gamma
 	int numberOfThreads = 1;
@@ -206,7 +221,16 @@ int main(int argc, char * argv[]) {
 					outName = argv[i + 1];
 				else if (!strcmp(curArg, "-tre"))
 					treeFileName = argv[i + 1];
-				else if (!strcmp(curArg, "-pm")) {
+				else if (!strcmp(curArg, "-m")) {
+					dataType = PROTEIC;
+					char * pModel = argv[i + 1];
+					for (int i = 0; i < (NUM_PROT_MODELS - 2); i++) {
+						if (!strcmp(protModels[i], pModel)) {
+							proteicModel = i;
+							break;
+						}
+					}
+				} else if (!strcmp(curArg, "-pm")) {
 					priorMean = atof(argv[i + 1]);
 					modelType = 1;
 				} else if (!strcmp(curArg, "-ra"))
@@ -237,43 +261,39 @@ int main(int argc, char * argv[]) {
 					offmove = atoi(argv[i + 1]);
 				else if (!strcmp(curArg, "-hsh"))
 					hyperSh = atof(argv[i + 1]);
-				else if (!strcmp(curArg, "-hsc"))
-                                 {
-                                        if (i + 1 == argc) 
-                                         {
-                                           cerr << endl << "  -hsc requires an argument" << endl << endl;
-					   printHelp(false);
-					   return 0;
-                                         }
+				else if (!strcmp(curArg, "-hsc")) {
+					if (i + 1 == argc) {
+						cerr << endl << "  -hsc requires an argument" << endl
+								<< endl;
+						printHelp(false);
+						return 0;
+					}
 					hyperSc = atof(argv[i + 1]);
-                                 }
-				else if (!strcmp(curArg, "-rnp"))
+				} else if (!strcmp(curArg, "-rnp"))
 					runPrior = true;
 				else if (!strcmp(curArg, "-cal"))
 					calibFN = argv[i + 1];
 				else if (!strcmp(curArg, "-npr"))
 					treeNodePrior = atoi(argv[i + 1]);
 				else if (!strcmp(curArg, "-bdr")) // (lambda - mu)
-                                 {
-                                        if (i + 1 == argc) 
-                                         {
-                                           cerr << endl << "  -bdr requires an argument" << endl << endl;
-					   printHelp(false);
-					   return 0;
-                                         }
+						{
+					if (i + 1 == argc) {
+						cerr << endl << "  -bdr requires an argument" << endl
+								<< endl;
+						printHelp(false);
+						return 0;
+					}
 					netDiv = atof(argv[i + 1]);
-                                 }
-				else if (!strcmp(curArg, "-bda")) // (mu / lambda)
-                                 {
-                                        if (i + 1 == argc) 
-                                         {
-                                           cerr << endl << "  -bda requires an argument" << endl << endl;
-					   printHelp(false);
-					   return 0;
-                                         }
+				} else if (!strcmp(curArg, "-bda")) // (mu / lambda)
+						{
+					if (i + 1 == argc) {
+						cerr << endl << "  -bda requires an argument" << endl
+								<< endl;
+						printHelp(false);
+						return 0;
+					}
 					relDeath = atof(argv[i + 1]);
-                                 }
-				else if (!strcmp(curArg, "-fix")) // fix clock
+				} else if (!strcmp(curArg, "-fix")) // fix clock
 					fixclokrt = atof(argv[i + 1]);
 				else if (!strcmp(curArg, "-res"))
 					rootfix = false;
@@ -300,7 +320,7 @@ int main(int argc, char * argv[]) {
 					fixModelPs = true;
 #ifdef _USE_PTHREADS
 				else if (!strcmp(curArg, "-T"))
-					numberOfThreads = atoi(argv[i + 1]);
+				numberOfThreads = atoi(argv[i + 1]);
 #endif
 				else if (!strcmp(curArg, "-h")) {
 					printHelp(false);
@@ -344,6 +364,17 @@ int main(int argc, char * argv[]) {
 		return 0;
 	}
 
+	if (dataType == PROTEIC && proteicModel < 0) {
+		cout
+				<< "\n############################ !!! ###########################\n";
+		cout
+				<< "\n\n\tPlease specify a valid aminoacid replacement model, here are the \n\tavailable options:\n";
+		printHelp(false);
+		cout
+				<< "\n############################ !!! ###########################\n";
+		return 0;
+	}
+
 	double initTime = gettime();
 
 	cout << "Reading data from file -- " << dataFileName << endl;
@@ -355,109 +386,109 @@ int main(int argc, char * argv[]) {
 #ifdef _FINE_GRAIN_MPI
 	tr[0]->isActive = true;
 	tr[1]->isActive = false;
-  /*
-     once mpi workers are signalled to finish, it is impontant that
-     they immediately terminate! (to avoid undefined behavior)
-   */
+	/*
+	 once mpi workers are signalled to finish, it is impontant that
+	 they immediately terminate! (to avoid undefined behavior)
+	 */
 #ifdef MEASURE_TIME_PARALLEL
-  masterTimePerPhase = gettime();
+	masterTimePerPhase = gettime();
 #endif
-  if(workerTrap(tr[0]))
-    return 0;
+	if(workerTrap(tr[0]))
+	return 0;
 #endif
 #ifdef _USE_PTHREADS
-  tr[0]->threadID = 0;
+	tr[0]->threadID = 0;
 #ifndef _PORTABLE_PTHREADS
-  /* not very portable thread to core pinning if PORTABLE_PTHREADS is not defined
-     by defualt the cod ebelow is deactivated */
-  pinToCore(0);
+	/* not very portable thread to core pinning if PORTABLE_PTHREADS is not defined
+	 by defualt the cod ebelow is deactivated */
+	pinToCore(0);
 #endif
 #endif
 
 	//read_msa(tr[0], (char *) dataFileName.c_str());
-    read_phylip_msa (tr[0], (char *) dataFileName.c_str(), 0);
-    FILE *treeFile = myfopen(treeFileName.c_str(), "rb");
+	int pll_dataType = (dataType == NUCLEIC)?DNA_DATA:AA_DATA;
+	read_phylip_msa(tr[0], (char *) dataFileName.c_str(), 0);//, pll_dataType, proteicModel);
+	FILE *treeFile = myfopen(treeFileName.c_str(), "rb");
 	treeReadLen(treeFile, tr[0], TRUE, FALSE, TRUE);
 	fclose(treeFile);
-tr[0]->partitionData[0].alpha = ALPHA_MIN;
+	tr[0]->partitionData[0].alpha = ALPHA_MIN;
 #ifdef _USE_PTHREADS
-  tr[1]->threadID = 0;
+	tr[1]->threadID = 0;
 #endif
 	//read_msa(tr[1], (char *) dataFileName.c_str());
-    read_phylip_msa (tr[1], (char *) dataFileName.c_str(), 0);
+	read_phylip_msa(tr[1], (char *) dataFileName.c_str(), 0);//, pll_dataType, proteicModel);
 	treeFile = myfopen(treeFileName.c_str(), "rb");
 	treeReadLen(treeFile, tr[1], TRUE, FALSE, TRUE);
 	fclose(treeFile);
 
-tr[1]->partitionData[0].alpha = ALPHA_MIN;
-
+	tr[1]->partitionData[0].alpha = ALPHA_MIN;
 
 #if (defined(_FINE_GRAIN_MPI) || defined(_USE_PTHREADS))
-  /*
-     this main function is the master thread, so if we want to run RAxML with n threads,
-     we use startPthreads to start the n-1 worker threads */
-cout << "Starting threads" << endl;
+	/*
+	 this main function is the master thread, so if we want to run RAxML with n threads,
+	 we use startPthreads to start the n-1 worker threads */
+	cout << "Starting threads" << endl;
 #ifdef _USE_PTHREADS
-  tr[0]->numberOfThreads = tr[1]->numberOfThreads = numberOfThreads;
-  startPthreadsGeneric(tr, 2);
+	tr[0]->numberOfThreads = tr[1]->numberOfThreads = numberOfThreads;
+	startPthreadsGeneric(tr, 2);
 #endif
 
-  /* via masterBarrier() we invoke parallel regions in which all Pthreads work on computing something, mostly likelihood
-     computations. Have a look at execFunction() in axml.c where we siwtch of the different types of parallel regions.
+	/* via masterBarrier() we invoke parallel regions in which all Pthreads work on computing something, mostly likelihood
+	 computations. Have a look at execFunction() in axml.c where we siwtch of the different types of parallel regions.
 
-     Although not necessary, below we copy the info stored on tr->partitionData to corresponding copies in each thread.
-     While this is shared memory and we don't really need to copy stuff, it was implemented like this to allow for an easier
-     transition to a distributed memory implementation (MPI).
-     */
-  /* mpi version now also uses the generic barrier */
-  masterBarrier(THREAD_INIT_PARTITION, tr[0]);
+	 Although not necessary, below we copy the info stored on tr->partitionData to corresponding copies in each thread.
+	 While this is shared memory and we don't really need to copy stuff, it was implemented like this to allow for an easier
+	 transition to a distributed memory implementation (MPI).
+	 */
+	/* mpi version now also uses the generic barrier */
+	masterBarrier(THREAD_INIT_PARTITION, tr[0]);
 
-  double **empiricalFrequencies;
-  empiricalFrequencies = (double **)malloc(sizeof(double *));
-  empiricalFrequencies[0]  = (double *) malloc(4*sizeof(double *));
-  empiricalFrequencies[0][0] = empiricalFrequencies[0][1] = empiricalFrequencies[0][2] = empiricalFrequencies[0][3] = 0.25;
+	double **empiricalFrequencies;
+	empiricalFrequencies = (double **)malloc(sizeof(double *));
+	empiricalFrequencies[0] = (double *) malloc(4*sizeof(double *));
+	empiricalFrequencies[0][0] = empiricalFrequencies[0][1] = empiricalFrequencies[0][2] = empiricalFrequencies[0][3] = 0.25;
 
-  tr[1]->isActive = true;
-  tr[0]->isActive = false;
-  masterBarrier(THREAD_INIT_PARTITION, tr[1]);
+	tr[1]->isActive = true;
+	tr[0]->isActive = false;
+	masterBarrier(THREAD_INIT_PARTITION, tr[1]);
 #endif
 
-  Alignment myAlignment(tr[0]);
-  if (printalign)
-	myAlignment.print(std::cout);
+	Alignment myAlignment(tr[0]);
+	if (printalign)
+		myAlignment.print(std::cout);
 
-  string treeStr = getLineFromFile(treeFileName, 1);
+	string treeStr = getLineFromFile(treeFileName, 1);
 
-  MbRandom myRandom;
-  myRandom.setSeed(s1, s2);
+	MbRandom myRandom;
+	myRandom.setSeed(s1, s2);
 
-  Model myModel(&myRandom, &myAlignment, treeStr, priorMean, rateSh, rateSc,
+	Model myModel(&myRandom, &myAlignment, treeStr, priorMean, rateSh, rateSc,
 			hyperSh, hyperSc, userBLs, moveAllN, offmove, rndNdMv, calibFN,
 			treeNodePrior, netDiv, relDeath, fixclokrt, rootfix, softbnd,
-			calibHyP, dpmExpHyp, dpmEHPPrM, gammaExpHP, modelType, fixModelPs, tr);
-  if (runPrior)
-	myModel.setRunUnderPrior(true);
+			calibHyP, dpmExpHyp, dpmEHPPrM, gammaExpHP, modelType, fixModelPs,
+			tr, dataType, proteicModel);
+	if (runPrior)
+		myModel.setRunUnderPrior(true);
 
-  double midTime = gettime();
+	double midTime = gettime();
 
-  Mcmc mcmc(&myRandom, &myModel, numCycles, printFreq, sampleFreq, outName,
-		writeDataFile, modUpdatePs);
+	Mcmc mcmc(&myRandom, &myModel, numCycles, printFreq, sampleFreq, outName,
+			writeDataFile, modUpdatePs);
 
-	
-  double endTime = gettime();
+	double endTime = gettime();
 
-  printf("Total time: %f\n", endTime - initTime);
-  printf("Init time:  %f\n", midTime - initTime);
-  printf("MCMC time:  %f\n", endTime - midTime);
+	printf("Total time: %f\n", endTime - initTime);
+	printf("Init time:  %f\n", midTime - initTime);
+	printf("MCMC time:  %f\n", endTime - midTime);
 
 #if (defined(_FINE_GRAIN_MPI) || defined(_USE_PTHREADS))
-  /* workers escape from their while loop (could be joined in pthread case )  */
-  masterBarrier(THREAD_EXIT_GRACEFULLY,tr[0]);
+	/* workers escape from their while loop (could be joined in pthread case )  */
+	masterBarrier(THREAD_EXIT_GRACEFULLY,tr[0]);
 #endif
 
-  free(tr[0]);
-  free(tr[1]);
+	free(tr[0]);
+	free(tr[1]);
 
-  return 0;
+	return 0;
 }
 

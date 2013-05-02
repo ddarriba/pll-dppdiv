@@ -43,13 +43,14 @@
 #define PARAMETER_BASEFREQ_H
 
 #include "MbVector.h"
+#include "util.h"
 
 class MbRandom;
 class Model;
 class Basefreq : public Parameter {
 
 	public:
-							Basefreq(MbRandom *rp, Model *mp, int ns, bool fx);
+							Basefreq(MbRandom *rp, Model *mp, int ns, bool fx, DataType dataType, int proteinModel);
 							~Basefreq(void); 
 		Basefreq			&operator=(const Basefreq &b);
 		void				clone(const Basefreq &b);
@@ -62,6 +63,8 @@ class Basefreq : public Parameter {
 		std::string			writeParam(void);
 							
 	private:
+		DataType			dataType;
+		int 				proteinModel;
 		int					numStates;
 		double				*freqs;
 		MbVector<double>	alpha;

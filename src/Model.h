@@ -44,6 +44,7 @@
 
 #include <string>
 #include <vector>
+#include "util.h"
 #ifdef _FINE_GRAIN_MPI
 #include <mpi.h>
 #endif
@@ -84,7 +85,7 @@ class Model {
 											  bool alnm, int offmv, bool rndNo, std::string clfn, int nodpr, 
 											  double bdr, double bda, double fxclkrt, bool roofix,
 											  bool sfb, bool ehpc, bool dphpc, int dphpng, bool gamhp, int rmod,
-											  bool fxmod, tree *tr[2]);
+											  bool fxmod, tree *tr[2], DataType dataType, int proteinModel);
 										~Model(void);
 		void							checkModelParameters(void);
 		double							lnLikelihood(bool fullTraversal=true);
@@ -160,6 +161,9 @@ class Model {
 		bool							exponDPMCalibHyperParm;
 		bool							fixSomeModParams;
 		bool							cpfix;
+
+		DataType 						dataType;
+		int								proteinModel;
 
 		/* PLL */
 		tree	**pll_tree;
