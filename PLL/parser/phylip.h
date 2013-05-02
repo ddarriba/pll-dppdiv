@@ -4,8 +4,9 @@
 #define PHYLIP_KEEP_UNIQUE      1 << 0
 #define PHYLIP_LEX_SORT         1 << 1
 #define PHYLIP_SITE_WEIGHTS     1 << 2
-#define PHYLIP_DNA_DATA         1 << 3
-#define PHYLIP_PROT_DATA        1 << 4
+
+#define PHYLIP_DNA_DATA         1
+#define PHYLIP_PROT_DATA        2
 
 
 struct pllPhylip

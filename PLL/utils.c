@@ -95,14 +95,14 @@ void storeValuesInTraversalDescriptor(tree *tr, double *value)
 }
 
 #ifdef EXPERIMENTAL
-void read_phylip_msa(tree * tr, const char * filename, int type)
+void read_phylip_msa(tree * tr, const char * filename, int type, int protModel)
 {
     size_t
       i, j,
       model;
 
   struct pllPhylip * phylip;
-  double **empiricalFrequencies;
+  //double **empiricalFrequencies;
 
   phylip = pllPhylipParse (filename);
   pllPhylipRemoveDuplicate (phylip);
@@ -135,18 +135,17 @@ void read_phylip_msa(tree * tr, const char * filename, int type)
     tr->bitVectors = initBitVector(tr->mxtips, &(tr->vLength));
     tr->h = initHashTable(tr->mxtips * 4);
   }
-
   /* read tip names */
   for(i = 1; i <= (size_t)tr->mxtips; i++)
   {
-    tr->nameList[i] = phylip->label[i];
+ tr->nameList[i] = phylip->label[i];
   }
 
   for(i = 1; i <= (size_t)tr->mxtips; i++)
     addword(tr->nameList[i], tr->nameHash, i);
 
   /* read partition info (boudaries, data type) */
-  empiricalFrequencies = (double **)malloc(sizeof(double *) * (size_t)tr->NumberOfModels);
+  //empiricalFrequencies = (double **)malloc(sizeof(double *) * (size_t)tr->NumberOfModels);
   for (model = 0; model < (size_t)tr->NumberOfModels; model++)
   {
     int
@@ -155,13 +154,20 @@ void read_phylip_msa(tree * tr, const char * filename, int type)
     pInfo
       *p = &(tr->partitionData[model]);
 
-    p->states             =  4;   /* according to the type */
-    p->maxTipStates       = 16;   /* according to the type */
+    p->dataType           =  type; /* dna type */
+    p->states             =  pLengths[type].states;   /* according to the type */
+    if (type == DNA_DATA)  // DNA data
+     {
+       p->maxTipStates    =  16;
+     }
+    else  // AA data
+     {
+       p->maxTipStates    =  23;
+       p->protModels      =  protModel;
+     }
     p->lower              =  0;
-    p->upper              = phylip->seqLen;
-    p->width              = p->upper - p->lower;
-    p->dataType           =   DNA_DATA; /* dna type */
-    p->protModels         =  2;
+    p->upper              =  phylip->seqLen;
+    p->width              =  p->upper - p->lower;
     p->autoProtModels     =  0;
     p->protFreqs          =  0;
     p->nonGTR             =  FALSE;
@@ -184,9 +190,9 @@ void read_phylip_msa(tree * tr, const char * filename, int type)
   /* Read all characters from tips */
 //  y = (unsigned char *)malloc(sizeof(unsigned char) * ((size_t)tr->originalCrunchedLength) * ((size_t)tr->mxtips));
 
-  tr->yVector = (char **) malloc(sizeof(char*) * (tr->mxtips+1));
-  for (i=0; i < tr->mxtips; ++i)
-    tr->yVector[i+1] = phylip->seq[i+1]; //(unsigned char **)malloc(sizeof(unsigned char *) * ((size_t)(tr->mxtips + 1)));
+  tr->yVector = (char **) malloc (sizeof (char *) * (tr->mxtips + 1));
+  for (i = 0; i < tr->mxtips; ++ i)
+    tr->yVector[i + 1] = phylip->seq[i + 1]; //(unsigned char **)malloc(sizeof(unsigned char *) * ((size_t)(tr->mxtips + 1)));
 
   free (phylip);
 

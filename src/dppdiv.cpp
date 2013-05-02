@@ -62,7 +62,7 @@ using namespace std;
 #ifdef __cplusplus
 extern "C" {
 void read_msa(tree * tr, char * filename);
-void read_phylip_msa(tree * tr, const char * filename, int type);
+void read_phylip_msa(tree * tr, const char * filename, int type, int protModel);
 }
 #endif
 
@@ -407,7 +407,7 @@ int main(int argc, char * argv[]) {
 
 	//read_msa(tr[0], (char *) dataFileName.c_str());
 	int pll_dataType = (dataType == NUCLEIC)?DNA_DATA:AA_DATA;
-	read_phylip_msa(tr[0], (char *) dataFileName.c_str(), 0);//, pll_dataType, proteicModel);
+	read_phylip_msa(tr[0], (char *) dataFileName.c_str(), pll_dataType, proteicModel);
 	FILE *treeFile = myfopen(treeFileName.c_str(), "rb");
 	treeReadLen(treeFile, tr[0], TRUE, FALSE, TRUE);
 	fclose(treeFile);
@@ -416,7 +416,7 @@ int main(int argc, char * argv[]) {
 	tr[1]->threadID = 0;
 #endif
 	//read_msa(tr[1], (char *) dataFileName.c_str());
-	read_phylip_msa(tr[1], (char *) dataFileName.c_str(), 0);//, pll_dataType, proteicModel);
+	read_phylip_msa(tr[1], (char *) dataFileName.c_str(), pll_dataType, proteicModel);
 	treeFile = myfopen(treeFileName.c_str(), "rb");
 	treeReadLen(treeFile, tr[1], TRUE, FALSE, TRUE);
 	fclose(treeFile);
