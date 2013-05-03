@@ -201,11 +201,13 @@ double NodeRate::update(double &oldLnL) {
 
 int KN=0;
 double NodeRate::updateDPM(double &oldLnL) {
+
 	Tree *t = modelPtr->getActiveTree();
 	double oldLike = oldLnL;
 	modelPtr->rearrangeModelParameters();
 
 	const double tuning = log(2.0);
+
 	for (vector<RateGroup *>::iterator p=rateGroups.begin(); p != rateGroups.end(); p++){
 		double oldR = (*p)->getRate();
 		double newR = oldR * exp(tuning*(ranPtr->uniformRv()-0.5));
@@ -255,7 +257,6 @@ double NodeRate::updateDPM(double &oldLnL) {
 				lnProb.push_back( log(numSeatedElements) + rglnl );
 				(*p)->removeRateElement(i);
 			}
-
 			for (int j=0; j<numAuxiliary; j++)
 				auxiliaryRateGroups[j] = new RateGroup(ranPtr->gammaRv(alpha, beta));
 			for (int j=0; j<numAuxiliary; j++){
@@ -271,7 +272,7 @@ double NodeRate::updateDPM(double &oldLnL) {
 				auxiliaryRateGroups[j]->removeRateElement(i);
 				removeRateGroup(tempGrp); 
 			}
-						
+
 			normalizeVector(lnProb);
 			unsigned whichTable = ranPtr->categoricalRv(&lnProb[0], lnProb.size());
 			RateGroup *newGroup = NULL;
@@ -293,7 +294,7 @@ double NodeRate::updateDPM(double &oldLnL) {
 			oldLnL = modelPtr->lnLikelihood(false);
 		}
 	}
-	
+
 	delete [] auxiliaryRateGroups;
 
 	labelTables();

@@ -473,7 +473,7 @@ int main(int argc, char * argv[]) {
 	double midTime = gettime();
 
 	Mcmc mcmc(&myRandom, &myModel, numCycles, printFreq, sampleFreq, outName,
-			writeDataFile, modUpdatePs);
+			writeDataFile, modUpdatePs, dataType);
 
 	double endTime = gettime();
 

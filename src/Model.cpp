@@ -297,10 +297,12 @@ void Model::checkModelParameters(void) {
 	cout.precision(20);
 	cout << "SHAPE" << endl;
 	getActiveShape()->print(cout);
-	cout << "Frequencies" << endl;
-	getActiveBasefreq()->print(cout);
-	cout << "Rates" << endl;
-	getActiveExchangeability()->print(cout);
+	if (dataType == NUCLEIC) {
+		cout << "Frequencies" << endl;
+		getActiveBasefreq()->print(cout);
+		cout << "Rates" << endl;
+		getActiveExchangeability()->print(cout);
+	}
 	double avg = 0.0;
 	double max = 0.0;
 	double min = 1.0;
@@ -703,9 +705,11 @@ void Model::setUpdateProbabilities(bool initial) {
 }
 
 void Model::printDescription(ostream &o) {
-	getActiveBasefreq()->print(o);
+	if (dataType == NUCLEIC) {
+		getActiveBasefreq()->print(o);
+		getActiveExchangeability()->print(o);
+	}
 	getActiveShape()->print(o);
-	getActiveExchangeability()->print(o);
 	getActiveSpeciation()->print(o);
 	getActiveNodeRate()->print(o);
 	getActiveTreeScale()->print(o);

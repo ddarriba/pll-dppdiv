@@ -44,6 +44,7 @@
 
 #include <string>
 #include <fstream>
+#include "util.h"
 #ifdef _FINE_GRAIN_MPI
 #include <mpi.h>
 #endif
@@ -54,7 +55,7 @@ class Mcmc {
 
 	public:
 						Mcmc(MbRandom *rp, Model *mp, int nc, int pf, int sf, 
-							 std::string ofp, bool wdf, bool modUpP);
+							 std::string ofp, bool wdf, bool modUpP, int dataType);
 							
 	private:
 		void			runChain(void);
@@ -73,6 +74,7 @@ class Mcmc {
 		bool			writeInfoFile;
 		bool			printratef;
 		bool			modUpdateProbs;
+		int				dataType;
 };
 
 #endif

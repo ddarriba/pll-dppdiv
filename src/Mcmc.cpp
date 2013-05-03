@@ -50,14 +50,13 @@
 #include "Parameter_tree.h"
 #include "Parameter_shape.h"
 #include "Parameter_speciaton.h"
-#include "util.h"
 #include <iomanip>
 #include <iostream>
 #include <ctime>
 
 using namespace std;
 
-Mcmc::Mcmc(MbRandom *rp, Model *mp, int nc, int pf, int sf, string ofp, bool wdf, bool modUpP) {
+Mcmc::Mcmc(MbRandom *rp, Model *mp, int nc, int pf, int sf, string ofp, bool wdf, bool modUpP, int dt) {
 
 	ranPtr          = rp;
 	modelPtr        = mp;
@@ -68,6 +67,7 @@ Mcmc::Mcmc(MbRandom *rp, Model *mp, int nc, int pf, int sf, string ofp, bool wdf
 	writeInfoFile   = wdf;
 	printratef		= false;
 	modUpdateProbs  = modUpP;
+	dataType		= dt;
 	runChain();
 }
 
@@ -120,8 +120,8 @@ void Mcmc::runChain(void) {
 		modelPtr->switchActiveParm();
 		int id;
 		Parameter *parm = modelPtr->pickParmToUpdate(&id);
-
 #ifdef DEBUG
+		cout << setw(6) << n << "Next parameter: " <<parm->getName() << "" << endl;
 		clock_t t0 = clock();
 #endif
 		double prevlnl = oldLnLikelihood;
@@ -206,8 +206,11 @@ void Mcmc::sampleChain(int gen, ofstream &paraOut, ofstream &treeOut, ofstream &
 		hpex = modelPtr->getActiveExpCalib();
 	
 	if(gen == 1){
-		paraOut << "Gen\tlnLikelihood\tf(A)\tf(C)\tf(G)\tf(T)";
-		paraOut << "\tr(AC)\tr(AG)\tr(AT)\tr(CG)\tr(CT)\tr(GT)\tshape\tave rate\tnum rate groups\tconc param\n";
+		paraOut << "Gen\tlnLikelihood";
+		if (dataType == NUCLEIC) {
+			paraOut << "\tf(A)\tf(C)\tf(G)\tf(T)\tr(AC)\tr(AG)\tr(AT)\tr(CG)\tr(CT)\tr(GT)";
+		}
+		paraOut << "\tshape\tave rate\tnum rate groups\tconc param\n";
 		treeOut << "#NEXUS\nbegin trees;\n";
 		figTOut << "#NEXUS\nbegin trees;\n";
 		nodeOut << "Gen\tlnL";
@@ -226,10 +229,12 @@ void Mcmc::sampleChain(int gen, ofstream &paraOut, ofstream &treeOut, ofstream &
 	}
 
 	paraOut << gen << "\t" << lnl;
-	for(int i=0; i<f->getNumStates(); i++)
-		paraOut << "\t" << f->getFreq(i);
-	for(int i=0; i<6; i++)
-		paraOut << "\t" << e->getRate(i);
+	if (dataType == NUCLEIC) {
+		for(int i=0; i<f->getNumStates(); i++)
+			paraOut << "\t" << f->getFreq(i);
+		for(int i=0; i<6; i++)
+			paraOut << "\t" << e->getRate(i);
+	}
 	paraOut << "\t" << sh->getAlphaSh();
 	paraOut << "\t" << nr->getAverageRate();
 	paraOut << "\t" << nr->getNumRateGroups();
@@ -280,8 +285,10 @@ void Mcmc::printAllModelParams(ofstream &dOut){
 	
 	dOut << "\n--------------------------------------------------\n";
 	dOut << "Initial: \n";
-	dOut << modelPtr->getActiveBasefreq()->writeParam();
-	dOut << modelPtr->getActiveExchangeability()->writeParam();
+	if (dataType == NUCLEIC) {
+		dOut << modelPtr->getActiveBasefreq()->writeParam();
+		dOut << modelPtr->getActiveExchangeability()->writeParam();
+	}
 	dOut << modelPtr->getActiveShape()->writeParam();
 	dOut << modelPtr->getActiveNodeRate()->writeParam();
 	dOut << modelPtr->getActiveTree()->writeParam();
