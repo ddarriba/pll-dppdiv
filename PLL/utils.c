@@ -118,7 +118,7 @@ void read_phylip_msa(tree * tr, const char * filename, int type, int protModel)
   tr->aliaswgt               = phylip->weights;
   tr->originalCrunchedLength = phylip->seqLen;
 
-  pllPhylipSubst (phylip, PHYLIP_DNA_DATA);
+  pllPhylipSubst (phylip, type);
 
   tr->rateCategory  =     (int *) malloc ((size_t)tr->originalCrunchedLength * sizeof (int));
   tr->patrat        =  (double *) malloc ((size_t)tr->originalCrunchedLength * sizeof (double));
@@ -1118,7 +1118,9 @@ void initializePartitionData(tree *localTree)
 
   int tid  = localTree->threadID; 
 
+#if (defined(_USE_PTHREADS) || defined(_FINE_GRAIN_MPI))
   if(tid > 0)
+#endif
       localTree->rateCategory    = (int *)    calloc((size_t)localTree->originalCrunchedLength, sizeof(int));	    
 
   for(model = 0; model < (size_t)localTree->NumberOfModels; model++)
